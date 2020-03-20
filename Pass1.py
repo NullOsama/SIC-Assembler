@@ -21,7 +21,7 @@ class Line:
             # remove and return the compaund values
             line.append(line.pop(1) + line.pop(1))
         elif len(line) > 2 and line[2].endswith(','):  # if there is a label
-            # remove and return the compaund values
+            # remove and return the compaund values to the line
             line.append(line.pop(2) + line.pop(2))
 
         if len(line) == 3:
@@ -74,7 +74,7 @@ class Assembler:
                 line_object = Line(line)
                 label, operation_name, operand = line_object.label, line_object.operation_name, line_object.operand
                 line_object.line_location = self.locctr
-                
+
                 if label is not None:
                     if label not in self.symbol_table:
                         self.symbol_table[label] = hex(int(self.locctr))
