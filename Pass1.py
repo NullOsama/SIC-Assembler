@@ -135,10 +135,10 @@ def assembel(source_file_path):
         # for line_object in assembler.intermediate:
         #     print([hex(line_object.line_location), line_object.label if line_object.label is not None else '    ',
         #            line_object.operation_name, line_object.operand if line_object.operand is not None else '    '])
-        test = '\n'.join(['\t'.join([hex(line_object.line_location), line_object.label if line_object.label is not None else '\t',
+        test = '\n'.join(['\t'.join([hex(line_object.line_location).upper(), line_object.label if line_object.label is not None else '\t',
                                      line_object.operation_name, line_object.operand if line_object.operand is not None else '\t']) for line_object in assembler.intermediate])
         intermediate_file.write(test)
         print(test)
 
 
-assembel(r'sample_tests\basic.asm')
+assembel(r'sample_tests\page58.asm')
