@@ -121,7 +121,7 @@ class Assembler:
 
 
 def assembel(source_file_path):
-    with open(source_file_path, 'r') as source_file, open(r'C:\Users\aaxxo\Desktop\SICass\intermediate.txt', 'w') as intermediate_file:
+    with open(source_file_path, 'r') as source_file, open(r'C:\Users\aaxxo\Desktop\SICass\intermediate.mdt', 'w') as intermediate_file:
         assembler = Assembler(source_file)
         assembler.pass_one()
         # print(assembler.prog_name, assembler.prog_length,  assembler.symbol_table, sep='\n')
@@ -138,6 +138,7 @@ def assembel(source_file_path):
         test = '\n'.join(['\t'.join([hex(line_object.line_location).upper(), line_object.label if line_object.label is not None else '\t',
                                      line_object.operation_name, line_object.operand if line_object.operand is not None else '\t']) for line_object in assembler.intermediate])
         intermediate_file.write(test)
+        print(test)
 
 
-assembel(r'sample_tests\page58.asm')
+assembel(r'sample_tests\basic.asm')
