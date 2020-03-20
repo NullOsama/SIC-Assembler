@@ -80,7 +80,7 @@ class Assembler:
                         operand = operand.replace("X", '')
                         operand = operand.replace("'", '')
                         operand = int(operand, base=16)
-                        # hex representation has 0x extr charechters so we subtract 2 and then
+                        # hex representation has 0x extra charechters so we subtract 2 and then
                         # divide by 2 because hex numbers needs half byte to be stored
                         self.locctr += ceil((len(hex(operand)) - 2) / 2)
                     elif operand.startswith('C'):
