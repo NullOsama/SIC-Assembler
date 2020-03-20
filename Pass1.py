@@ -6,7 +6,7 @@ from math import ceil
 def parse_line(line: str):
 
     line = line.split()
-    for indx, segment in enumerate():
+    for indx, segment in enumerate(line):
         if segment.split()[0].startswith('.'):
             line = line[:indx]
 
@@ -19,9 +19,9 @@ def parse_line(line: str):
         line.append(line.pop(2) + line.pop(2))
 
     if len(line) == 3:
-        return line  # label, operation_name, operand
+        return line[0], line[1], line[2] # label, operation_name, operand
     elif len(line) == 2:
-        return None, line  # No label, operation_name, operand
+        return None, line[0], line[1] # No label, operation_name, operand
     elif len(line) == 1:
         return None, line[0], None  # No label, operation name, no operand
     else:
@@ -33,7 +33,7 @@ class Assembler:
         super().__init__()
 
         # The content of the source file, i.e. lines
-        self.content = [line.rstrip('\n') for line in input_file.readlines()]
+        self.content = (line.rstrip('\n') for line in input_file.readlines())
         # Symbol Table
         self.symbol_table = defaultdict(str)
         # Location Counter
@@ -51,7 +51,7 @@ class Assembler:
     def pass_one(self):
 
         # Find the starting address and the name of the program.
-        first_line = self.content[0]
+        first_line = next(self.content)
         label, operation_name, operand = parse_line(first_line)
 
         if operation_name is not None:
@@ -59,10 +59,10 @@ class Assembler:
                 self.start_address = int(operand, base=16)
                 self.locctr = int(operand, base=16)
                 self.prog_name = label
-        next(self.content)  # To jump on the first line
+        # To jump on the first line
 
         for line_number, line in enumerate(self.content):
-            if not self.is_comment(line) and not self.is_empty(line):
+            if not self.is_empty(line) and not self.is_comment(line):
                 label, operation_name, operand = parse_line(line)
 
                 if label is not None:
@@ -70,8 +70,8 @@ class Assembler:
                         self.symbol_table[label] = hex(int(self.locctr))
                     else:
                         raise ProcessLookupError
-                operation_name, form4 = operation_name[1:], 1 if operation_name.startswith(
-                    '+') else operation_name, 0
+                operation_name, form4 = (operation_name[1:], 1) if operation_name.startswith(
+                    '+') else (operation_name, 0)
 
                 if operation_name in opcode_table:
                     self.locctr += opcode_table[operation_name].format + form4
@@ -103,3 +103,10 @@ class Assembler:
                     pass
                 else:
                     raise SyntaxError
+
+
+
+with open(r'C:\Users\aaxxo\Desktop\SICass\sample_tests\page58.asm') as file:
+    assembler = Assembler(file)
+    assembler.pass_one()
+    print(assembler.symbol_table)
