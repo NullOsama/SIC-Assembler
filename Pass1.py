@@ -36,7 +36,7 @@ class Assembler:
         self.content = [line.rstrip('\n') for line in input_file.readlines()]
         # Symbol Table
         self.symbol_table = defaultdict(str)
-        # Locattion Counter
+        # Location Counter
         self.locctr = 0
         self.prog_name = ''
         self.start_address = 0
