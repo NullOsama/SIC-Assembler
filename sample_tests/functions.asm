@@ -50,4 +50,3 @@ WLOOP	TD	OUTPUT	.Test OUTPUT Device
 	RSUB	.Return to caller
 OUTPUT	BYTE	X'05'	.CODE for OUPUT device
 END	FIRST
-	

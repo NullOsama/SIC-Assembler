@@ -3,29 +3,34 @@ from utils import Instruction, opcode_table
 from math import ceil
 
 
-def parse_line(line: str):
+class Line:
+    def __init__(self, line):
+        super().__init__()
+        self.label, self.operation_name, self.operand = self.parse_line(line)
 
-    line = line.split()
-    for indx, segment in enumerate(line):
-        if segment.split()[0].startswith('.'):
-            line = line[:indx]
+    def parse_line(self, line: str):
 
-    # remove spaces in between operands
-    if len(line) > 1 and line[1].endswith(','):  # if there is no label
-        # remove and return the compaund values
-        line.append(line.pop(1) + line.pop(1))
-    elif len(line) > 2 and line[2].endswith(','):  # if there is a label
-        # remove and return the compaund values
-        line.append(line.pop(2) + line.pop(2))
+        line = line.split()
+        for indx, segment in enumerate(line):
+            if segment.split()[0].startswith('.'):
+                line = line[:indx]
 
-    if len(line) == 3:
-        return line[0], line[1], line[2] # label, operation_name, operand
-    elif len(line) == 2:
-        return None, line[0], line[1] # No label, operation_name, operand
-    elif len(line) == 1:
-        return None, line[0], None  # No label, operation name, no operand
-    else:
-        raise SyntaxError
+        # remove spaces in between operands
+        if len(line) > 1 and line[1].endswith(','):  # if there is no label
+            # remove and return the compaund values
+            line.append(line.pop(1) + line.pop(1))
+        elif len(line) > 2 and line[2].endswith(','):  # if there is a label
+            # remove and return the compaund values
+            line.append(line.pop(2) + line.pop(2))
+
+        if len(line) == 3:
+            return line[0], line[1], line[2]  # label, operation_name, operand
+        elif len(line) == 2:
+            return None, line[0], line[1]  # No label, operation_name, operand
+        elif len(line) == 1:
+            return None, line[0], None  # No label, operation name, no operand
+        else:
+            raise SyntaxError
 
 
 class Assembler:
@@ -51,8 +56,8 @@ class Assembler:
     def pass_one(self):
 
         # Find the starting address and the name of the program.
-        first_line = next(self.content)
-        label, operation_name, operand = parse_line(first_line)
+        first_line = Line(next(self.content))
+        label, operation_name, operand = first_line.label, first_line.operation_name, first_line.operand
 
         if operation_name is not None:
             if operation_name == 'START':
@@ -63,7 +68,8 @@ class Assembler:
 
         for line_number, line in enumerate(self.content):
             if not self.is_empty(line) and not self.is_comment(line):
-                label, operation_name, operand = parse_line(line)
+                line_object = Line(line)
+                label, operation_name, operand = line_object.label, line_object.operation_name, line_object.operand
 
                 if label is not None:
                     if label not in self.symbol_table:
@@ -103,10 +109,10 @@ class Assembler:
                     pass
                 else:
                     raise SyntaxError
+        self.prog_length = int(hex(self.locctr - self.start_address), 0)
 
 
-
-with open(r'C:\Users\aaxxo\Desktop\SICass\sample_tests\page58.asm') as file:
-    assembler = Assembler(file)
+with open(r'C:\Users\aaxxo\Desktop\SICass\sample_tests\basic.asm') as file:
+    assembler=Assembler(file)
     assembler.pass_one()
-    print(assembler.symbol_table)
+    print(assembler.prog_name, assembler.prog_length,  assembler.symbol_table, sep='\n')
