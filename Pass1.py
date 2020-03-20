@@ -7,6 +7,7 @@ class Line:
     def __init__(self, line):
         super().__init__()
         self.label, self.operation_name, self.operand = self.parse_line(line)
+        self.line_location = ''
 
     def parse_line(self, line: str):
 
@@ -58,6 +59,7 @@ class Assembler:
         # Find the starting address and the name of the program.
         first_line = Line(next(self.content))
         label, operation_name, operand = first_line.label, first_line.operation_name, first_line.operand
+        
 
         if operation_name is not None:
             if operation_name == 'START':
@@ -65,12 +67,14 @@ class Assembler:
                 self.locctr = int(operand, base=16)
                 self.prog_name = label
         # To jump on the first line
+        first_line.line_location = self.start_address
 
         for line_number, line in enumerate(self.content):
             if not self.is_empty(line) and not self.is_comment(line):
                 line_object = Line(line)
                 label, operation_name, operand = line_object.label, line_object.operation_name, line_object.operand
-
+                line_object.line_location = self.locctr
+                
                 if label is not None:
                     if label not in self.symbol_table:
                         self.symbol_table[label] = hex(int(self.locctr))
@@ -112,7 +116,7 @@ class Assembler:
         self.prog_length = int(hex(self.locctr - self.start_address), 0)
 
 
-with open(r'C:\Users\aaxxo\Desktop\SICass\sample_tests\basic.asm') as file:
+with open(r'C:\Users\aaxxo\Desktop\SICass\sample_tests\page58.asm') as file:
     assembler=Assembler(file)
     assembler.pass_one()
     print(assembler.prog_name, assembler.prog_length,  assembler.symbol_table, sep='\n')
