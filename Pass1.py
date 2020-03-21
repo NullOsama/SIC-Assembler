@@ -124,7 +124,7 @@ def assembel(source_file_path):
     with open(source_file_path, 'r') as source_file, open(r'C:\Users\aaxxo\Desktop\SICass\intermediate.mdt', 'w') as intermediate_file:
         assembler = Assembler(source_file)
         assembler.pass_one()
-        # print(assembler.prog_name, assembler.prog_length,  assembler.symbol_table, sep='\n')
+        print(assembler.prog_name, assembler.prog_length,  assembler.symbol_table, sep='\n')
         # return assembler.prog_name, assembler.prog_length,  assembler.symbol_table
 
         # lines = [' '.join(line) for line in assembler.intermediate]
@@ -135,10 +135,15 @@ def assembel(source_file_path):
         # for line_object in assembler.intermediate:
         #     print([hex(line_object.line_location), line_object.label if line_object.label is not None else '    ',
         #            line_object.operation_name, line_object.operand if line_object.operand is not None else '    '])
-        test = '\n'.join(['\t'.join([hex(line_object.line_location).upper(), line_object.label if line_object.label is not None else '\t',
-                                     line_object.operation_name, line_object.operand if line_object.operand is not None else '\t']) for line_object in assembler.intermediate])
+        test = '\n'.join(['\t'.join([hex(line_object.line_location).upper().replace('X', 'x'), line_object.label if line_object.label is not None else '',
+                                     line_object.operation_name, line_object.operand if line_object.operand is not None else '']) for line_object in assembler.intermediate])
         intermediate_file.write(test)
-        print(test)
+        # print(test)
+
+        # for label in assembler.symbol_table:
+        #     print(label, assembler.symbol_table[label].upper(), sep=': ')
+
+        return assembler.prog_name, assembler.prog_length,  assembler.symbol_table
 
 
-assembel(r'sample_tests\basic.asm')
+assembel(r'sample_tests\functions.asm')

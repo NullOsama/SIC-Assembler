@@ -70,8 +70,3 @@ opcode_table = {'ADD':     Instruction('18', 3, ['m']),
                 'TIXR':    Instruction('B8', 2, ['r1']),
                 'WD':      Instruction('DC', 3, ['m'])
                 }
-
-
-
-
-# """
