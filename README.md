@@ -1,6 +1,6 @@
 # SIC-Assembler
 
-SIC-Axxembler Project that assemble a SIC architechure scripts and generates the requared files and records.
+SIC-Assembler Project that assemble a SIC architechure scripts and generates the requared files and records.
 Currently pass1 is implemented and working on pass two april 15th.
 
 ## Usage
