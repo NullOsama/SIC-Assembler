@@ -234,8 +234,6 @@ def assembel(source_file_path, output_path):
         return assembler.prog_name, assembler.prog_length,  assembler.symbol_table
 
 
-# assembel(r'sample_tests\literals.asm')
-
 def main(argv):
     inputfile = ''
     outputfile = ''
