@@ -7,13 +7,42 @@ from utils import Instruction, opcode_table
 
 
 class Line:
+    """
+    Break SIC instruction into label, opcode, operands.
+
+
+    Parameters
+    ----------
+    line: str
+    SIC instruction
+    """
+
     def __init__(self, line):
         super().__init__()
         self.label, self.operation_name, self.operand = self.parse_line(line)
         self.line_location = ''
 
     def parse_line(self, line: str):
+        """
+        Break SIC instruction into label, opcode, operands.
 
+
+        Parameters
+        ----------
+        Line: str
+        SIC instruction
+
+        Returns
+        ----------
+        label: str
+        label of the SIC instruction
+
+        operation_name: str
+        opcodel of the SIC instruction
+
+        operand: str
+        operand of the SIC instruction
+        """
         line = line.split()
         for indx, segment in enumerate(line):
             if segment.split()[0].startswith('.'):
@@ -38,6 +67,15 @@ class Line:
 
 
 class Assembler:
+    """
+    Assembles a SIC source code file and operate pass1 on it.
+
+    Parameters
+    ----------
+    input_file: str
+    SIC source file
+    """
+
     def __init__(self, input_file):
         super().__init__()
 
@@ -59,7 +97,15 @@ class Assembler:
         return len(line.split()) == 0
 
     def pass_one(self):
+        """
+        Operate pass1 on the source code.
 
+        Parameters
+        ----------
+
+        Returns
+        ----------
+        """
         literals_list = []
         # Find the starting address and the name of the program.
         first_line = Line(next(self.content))
