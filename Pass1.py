@@ -34,7 +34,7 @@ class Line:
         elif len(line) == 1:
             return None, line[0], None  # No label, operation name, no operand
         else:
-            raise SyntaxError
+            raise SyntaxError('Fixed format only')
 
 
 class Assembler:
@@ -87,17 +87,22 @@ class Assembler:
                     if label not in self.symbol_table:
                         self.symbol_table[label] = hex(int(self.locctr))
                     else:
-                        raise ProcessLookupError
+                        raise ProcessLookupError(
+                            'No duplicate labels are allowed')
 
                 if operation_name in opcode_table:
                     self.locctr += opcode_table[operation_name].format
                     if operand is not None and operand.startswith('='):
                         operand = operand.replace("=", '')
                         if operand.startswith('X'):
+                            # X means that we have literals whith half byte for each charachter
                             literal_size = ceil((len(operand)-3)/2)
                         elif operand.startswith('C'):
                             literal_size = len(operand) - 3
                             # C means that we have letters which need one byte each to be stored
+                        else:
+                            raise SyntaxError(
+                                f'Byte operand should only start with either X or C not {operand[0]}')
                         literals_list.append(('=' + operand, literal_size))
 
                 elif operation_name == 'LTORG':
@@ -128,7 +133,8 @@ class Assembler:
                         # C means that we have letters which need one byte each to be stored
                         self.locctr += len(operand)
                     else:
-                        raise SyntaxError
+                        raise SyntaxError(
+                            f'Byte operand should only start with either X or C not {operand[0]}')
                 elif operation_name == 'RESB':
                     self.locctr += int(operand)
                 elif operation_name == 'WORD':
@@ -143,7 +149,8 @@ class Assembler:
                 elif operation_name == 'EQU':
                     pass
                 else:
-                    raise SyntaxError
+                    raise SyntaxError(
+                        f'Undefined operation at {hex(int(self.locctr))}')
 
         if len(literals_list) > 0:
             # Remove duplicates
@@ -168,8 +175,12 @@ def assembel(source_file_path, output_path):
     with open(source_file_path, 'r') as source_file, open(output_path, 'w') as intermediate_file:
         assembler = Assembler(source_file)
         assembler.pass_one()
-        print(assembler.prog_name, assembler.prog_length,
-              assembler.symbol_table, sep='\n')
+        print('\n\nProgram Name: ' + assembler.prog_name, 'Starting Address: ' +
+              hex(assembler.start_address), 'Program Length: ' + str(assembler.prog_length) + ' bytes\n\n', sep='\n')
+
+        print('label \t address')
+        for label, label_address in assembler.symbol_table.items():
+            print(label + ' \t ' + label_address)
         test = '\n'.join(['\t'.join([hex(line_object.line_location).upper().replace('X', 'x'), line_object.label if line_object.label is not None else '',
                                      line_object.operation_name, line_object.operand if line_object.operand is not None else '']) for line_object in assembler.intermediate])
         intermediate_file.write(test)
