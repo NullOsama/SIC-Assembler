@@ -2,17 +2,17 @@ COPY    START   0
 FIRST   STL     RETADR
         LDB     #LENGTH
         BASE    LENGTH
-CLOOP   +JSUB   RDREC
+CLOOP   JSUB   RDREC
         LDA     LENGTH
         COMP    #0
         JEQ     ENDFIL
-        +JSUB   WRREC
+        JSUB   WRREC
         J       CLOOP
 ENDFIL  LDA     EOF
         STA     BUFFER
         LDA     #3
         STA     LENGTH
-        +JSUB   WRREC
+        JSUB   WRREC
         J       @RETADR
 EOF     BYTE    C'EOF'
 RETADR  RESW    1
@@ -24,7 +24,7 @@ BUFFER  RESB    4096
 RDREC   CLEAR   X
         CLEAR   A
         CLEAR   S
-        +LDT    #4096
+        LDT    #4096
 RLOOP   TD      INPUT
         JEQ     RLOOP
         RD      INPUT

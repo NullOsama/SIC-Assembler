@@ -1,4 +1,3 @@
-
 class Instruction:
     """ 
     Represents a single instruction. 
@@ -6,8 +5,8 @@ class Instruction:
 
     def __init__(self, opcode, format, operands):
         self.opcode = opcode
-        self.operands = operands
         self.format = format
+        self.operands = operands
 
 
 # Operation code table, Appendex A in the book
