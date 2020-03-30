@@ -1,3 +1,4 @@
+import os
 import sys
 import getopt
 from math import ceil
@@ -176,4 +177,29 @@ def assembel(source_file_path, output_path):
         return assembler.prog_name, assembler.prog_length,  assembler.symbol_table
 
 
-assembel(r'sample_tests\literals.asm')
+# assembel(r'sample_tests\literals.asm')
+
+def main(argv):
+    inputfile = ''
+    outputfile = ''
+    try:
+        opts, args = getopt.getopt(argv, "hi:o:", ["ifile=", "ofile="])
+    except getopt.GetoptError:
+        print('test.py -i <inputfile> -o <outputfile>')
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt == '-h':
+            print('test.py -i <inputfile> -o <outputfile>')
+            sys.exit()
+        elif opt in ("-i", "--ifile"):
+            inputfile = os.path.abspath(arg)
+        elif opt in ("-o", "--ofile"):
+            outputfile = os.path.abspath(arg)
+    print('Input file is ', inputfile)
+    print('Output file is ', outputfile)
+
+    assembel(inputfile, outputfile)
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
