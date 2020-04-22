@@ -190,6 +190,7 @@ class Assembler:
                 elif operation_name == 'END':
                     break
                 elif operation_name == 'BASE':
+                    # Will be handeld in pass2
                     pass
                 elif operation_name == 'EQU':
                     pass
@@ -217,6 +218,9 @@ class Assembler:
 
 
 def assembel(source_file_path, output_path):
+    if source_file_path == '' or output_path == '':
+        source_file_path = input('Enter the input source path: ')
+        output_path = input('Enter the output path: .')
     with open(source_file_path, 'r') as source_file, open(output_path, 'w') as intermediate_file:
         assembler = Assembler(source_file)
         assembler.pass_one()
@@ -226,9 +230,10 @@ def assembel(source_file_path, output_path):
         print('label \t address')
         for label, label_address in assembler.symbol_table.items():
             print(label + ' \t ' + label_address)
-        test = '\n'.join(['\t'.join([hex(line_object.line_location).upper().replace('X', 'x'), line_object.label if line_object.label is not None else '',
-                                     line_object.operation_name, line_object.operand if line_object.operand is not None else '']) for line_object in assembler.intermediate])
-        intermediate_file.write(test)
+        intermediate_file_content = '\n'.join(['\t'.join([hex(line_object.line_location).upper().replace('X', 'x'), line_object.label if line_object.label is not None else '',
+                                                          line_object.operation_name, line_object.operand if line_object.operand is not None else '']) for line_object in assembler.intermediate])
+
+        intermediate_file.write(intermediate_file_content)
 
         return assembler.prog_name, assembler.prog_length,  assembler.symbol_table
 
@@ -237,7 +242,7 @@ def main(argv):
     inputfile = ''
     outputfile = ''
     try:
-        opts, args = getopt.getopt(argv, "hi:o:", ["ifile=", "ofile="])
+        opts, _ = getopt.getopt(argv, "hi:o:", ["ifile=", "ofile="])
     except getopt.GetoptError:
         print('test.py -i <inputfile> -o <outputfile>')
         sys.exit(2)
