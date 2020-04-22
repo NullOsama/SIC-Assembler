@@ -26,7 +26,6 @@ class Line:
         """
         Break SIC instruction into label, opcode, operands.
 
-
         Parameters
         ----------
         Line: str
@@ -134,7 +133,7 @@ class Assembler:
                         self.symbol_table[label] = hex(int(self.locctr))
                     else:
                         raise ProcessLookupError(
-                            'No duplicate labels are allowed')
+                            f'No duplicate labels are allowed on line {line_number}')
 
                 if operation_name in opcode_table:
                     self.locctr += opcode_table[operation_name].format
@@ -148,7 +147,7 @@ class Assembler:
                             # C means that we have letters which need one byte each to be stored
                         else:
                             raise SyntaxError(
-                                f'Byte operand should only start with either X or C not {operand[0]}')
+                                f'Byte operand should only start with either X or C not {operand[0]} on line {line_number}')
                         literals_list.append(('=' + operand, literal_size))
 
                 elif operation_name == 'LTORG':
@@ -180,7 +179,7 @@ class Assembler:
                         self.locctr += len(operand)
                     else:
                         raise SyntaxError(
-                            f'Byte operand should only start with either X or C not {operand[0]}')
+                            f'Byte operand should only start with either X or C not {operand[0]} on line {line_number}')
                 elif operation_name == 'RESB':
                     self.locctr += int(operand)
                 elif operation_name == 'WORD':
@@ -196,7 +195,7 @@ class Assembler:
                     pass
                 else:
                     raise SyntaxError(
-                        f'Undefined operation at {hex(int(self.locctr))}')
+                        f'Undefined operation at {hex(int(self.locctr))} on line {line_number}')
 
         if len(literals_list) > 0:
             # Remove duplicates
