@@ -88,6 +88,7 @@ class Assembler:
         self.start_address = 0
         self.prog_length = 0
         self.intermediate = []
+        self.objects_list = []
 
     def is_comment(self, line):
         return line.split()[0].startswith('.')
@@ -216,6 +217,17 @@ class Assembler:
 
         self.prog_length = int(hex(self.locctr - self.start_address), 0)
 
+    def pass2(self):
+        for line_object in self.intermediate:
+            object_code = ['0'] * 24
+            line_location, label, operation_name, operand = line_object.line_location, line_object.label, line_object.operation_name, line_object.operand
+
+            if operation_name in opcode_table:
+                object_code[0:9] ="{0:08b}".format(int(opcode_table[operation_name], 16))
+                if ',' in operand:
+                    object_code[9] = '1'
+                
+
 
 def assembel(source_file_path, output_path):
     if source_file_path == '' or output_path == '':
@@ -229,10 +241,11 @@ def assembel(source_file_path, output_path):
 
         print('label \t address')
         for label, label_address in assembler.symbol_table.items():
-            print(label + ' \t ' + label_address)
+            print(label + ' \t ' + label_address.upper().replace('X', 'x'))
         intermediate_file_content = '\n'.join(['\t'.join([hex(line_object.line_location).upper().replace('X', 'x'), line_object.label if line_object.label is not None else '',
                                                           line_object.operation_name, line_object.operand if line_object.operand is not None else '']) for line_object in assembler.intermediate])
 
+        print(assembler.intermediate[2].line_location)
         intermediate_file.write(intermediate_file_content)
 
         return assembler.prog_name, assembler.prog_length,  assembler.symbol_table
