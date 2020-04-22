@@ -223,10 +223,17 @@ class Assembler:
             line_location, label, operation_name, operand = line_object.line_location, line_object.label, line_object.operation_name, line_object.operand
 
             if operation_name in opcode_table:
-                object_code[0:9] ="{0:08b}".format(int(opcode_table[operation_name], 16))
+                object_code[0:9] = "{0:08b}".format(int(opcode_table[operation_name], 16))
                 if ',' in operand:
                     object_code[9] = '1'
-                
+                    base_operand, _ = operand.split(',')
+                    object_code[10:] = "{0:015b}".format(int(self.symbol_table[base_operand], 16))
+                elif '=' in operand:  # If the operand is a litral.
+                    
+                    pass
+                else:
+                    object_code[9] = '0'
+                    object_code[10:] = "{0:015b}".format(int(self.symbol_table[operand], 16))
 
 
 def assembel(source_file_path, output_path):
