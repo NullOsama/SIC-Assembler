@@ -190,9 +190,6 @@ class Assembler:
                 # Program finished, Stop Reading.
                 elif operation_name == 'END':
                     break
-                elif operation_name == 'BASE':
-                    # Will be handeld in pass2
-                    pass
                 elif operation_name == 'EQU':
                     pass
                 else:
@@ -219,27 +216,45 @@ class Assembler:
 
     def pass2(self):
         for line_object in self.intermediate:
-            object_code = ['0'] * 24
+            object_code = ''
             line_location, label, operation_name, operand = line_object.line_location, line_object.label, line_object.operation_name, line_object.operand
 
             if operation_name in opcode_table:
-                object_code[0:9] = "{0:08b}".format(int(opcode_table[operation_name], 16))
-                if ',' in operand:
-                    object_code[9] = '1'
+                object_code += "{0:08b}".format(int(opcode_table[operation_name].opcode, 16))
+                if operation_name == 'RSUB':
+                    object_code += '0' * 16
+
+                elif ',' in operand:
+                    object_code += '1'
                     base_operand, _ = operand.split(',')
-                    object_code[10:] = "{0:015b}".format(int(self.symbol_table[base_operand], 16))
-                elif '=' in operand:  # If the operand is a litral.
-                    
-                    pass
+                    object_code += "{0:015b}".format(int(self.symbol_table[base_operand], 16))
                 else:
-                    object_code[9] = '0'
-                    object_code[10:] = "{0:015b}".format(int(self.symbol_table[operand], 16))
+                    object_code += '0'
+                    object_code += "{0:015b}".format(int(self.symbol_table[operand], 16))
+            else:
+                if operation_name == 'RESW' or operation_name == 'RESB':
+                    object_code = '\t'
+                else:
+                    if operation_name == 'WORD':
+                        object_code += "{0:024b}".format(int(operand))
+                    elif operation_name == 'BYTE':
+                        if operand.startswith('X'):
+                            object_code = operand.replace("X", '').replace("'", '')
+                        elif operand.startswith('C'):
+                            operand = operand.replace("C", '').replace("'", '')
+                            object_code = ''.join(["{0:08b}".format(ord(ch))[2:] for ch in operand])
+            if object_code != '':
+                self.objects_list.append(object_code)
+
+
+                    
+                
 
 
 def assembel(source_file_path, output_path):
     if source_file_path == '' or output_path == '':
         source_file_path = input('Enter the input source path: ')
-        output_path = input('Enter the output path: .')
+        output_path = input('Enter the output path: ')
     with open(source_file_path, 'r') as source_file, open(output_path, 'w') as intermediate_file:
         assembler = Assembler(source_file)
         assembler.pass_one()
@@ -254,7 +269,9 @@ def assembel(source_file_path, output_path):
 
         print(assembler.intermediate[2].line_location)
         intermediate_file.write(intermediate_file_content)
-
+        print('**********************')
+        assembler.pass2()
+        print(assembler.objects_list)
         return assembler.prog_name, assembler.prog_length,  assembler.symbol_table
 
 
