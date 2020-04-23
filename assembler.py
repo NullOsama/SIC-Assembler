@@ -96,6 +96,10 @@ class Assembler:
     def is_empty(self, line):
         return len(line.split()) == 0
 
+    def hexify_objects_code(self):
+        self.objects_list = ['\t' if obj == '' else "{:08x}".format(int(obj, 2))[2:].upper() if len(obj) == 24 else obj for obj in self.objects_list]
+        
+
     def pass_one(self):
         """
         Operate pass1 on the source code.
@@ -233,7 +237,7 @@ class Assembler:
                     object_code += "{0:015b}".format(int(self.symbol_table[operand], 16))
             else:
                 if operation_name == 'RESW' or operation_name == 'RESB':
-                    object_code = '\t'
+                    object_code = ''
                 else:
                     if operation_name == 'WORD':
                         object_code += "{0:024b}".format(int(operand))
@@ -242,22 +246,24 @@ class Assembler:
                             object_code = operand.replace("X", '').replace("'", '')
                         elif operand.startswith('C'):
                             operand = operand.replace("C", '').replace("'", '')
-                            object_code = ''.join(["{0:08b}".format(ord(ch))[2:] for ch in operand])
-            if object_code != '':
-                self.objects_list.append(object_code)
+                            object_code = ''.join([hex(ord(ch))[2:] for ch in operand])
+            self.objects_list.append(object_code)
+        self.hexify_objects_code()
+        
 
 
                     
                 
 
 
-def assembel(source_file_path, output_path):
-    if source_file_path == '' or output_path == '':
+def assembel(source_file_path, intermediate_file_output_path, listing_file_output_path=r'C:\Users\aaxxo\Desktop\SICass\listing.lst'):
+    if source_file_path == '' or intermediate_file_output_path == '':
         source_file_path = input('Enter the input source path: ')
-        output_path = input('Enter the output path: ')
-    with open(source_file_path, 'r') as source_file, open(output_path, 'w') as intermediate_file:
+        intermediate_file_output_path = input('Enter the output path: ')
+    with open(source_file_path, 'r') as source_file, open(intermediate_file_output_path, 'w') as intermediate_file, open(listing_file_output_path, 'w') as listing_file:
         assembler = Assembler(source_file)
         assembler.pass_one()
+        assembler.pass2()
         print('\n\nProgram Name: ' + assembler.prog_name, 'Starting Address: ' +
               hex(assembler.start_address), 'Program Length: ' + str(assembler.prog_length) + ' bytes\n\n', sep='\n')
 
@@ -267,11 +273,14 @@ def assembel(source_file_path, output_path):
         intermediate_file_content = '\n'.join(['\t'.join([hex(line_object.line_location).upper().replace('X', 'x'), line_object.label if line_object.label is not None else '',
                                                           line_object.operation_name, line_object.operand if line_object.operand is not None else '']) for line_object in assembler.intermediate])
 
-        print(assembler.intermediate[2].line_location)
+        listing_file_content = '\n'.join(['\t'.join([hex(line_object.line_location).upper().replace('X', 'x'), line_object.label if line_object.label is not None else '',
+                                                          line_object.operation_name, line_object.operand if line_object.operand is not None else '']) + '\t' + object_code for line_object, object_code in zip(assembler.intermediate, assembler.objects_list)])
+                                                          
         intermediate_file.write(intermediate_file_content)
-        print('**********************')
-        assembler.pass2()
-        print(assembler.objects_list)
+        listing_file.write(listing_file_content)
+        
+
+        # [print(x, y) for x, y in zip(assembler.intermediate, assembler.objects_list)]
         return assembler.prog_name, assembler.prog_length,  assembler.symbol_table
 
 
