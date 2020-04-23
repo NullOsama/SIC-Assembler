@@ -19,8 +19,12 @@ class Line:
 
     def __init__(self, line):
         super().__init__()
-        self.label, self.operation_name, self.operand = self.parse_line(line)
-        self.line_location = ''
+        if len(line) != 0:
+            self.label, self.operation_name, self.operand = self.parse_line(line)
+            self.line_location = ''
+        else:
+            self.label, self.operation_name, self.operand = '', '', ''
+            self.line_location = ''
 
     def parse_line(self, line: str):
         """
@@ -62,7 +66,7 @@ class Line:
         elif len(line) == 1:
             return None, line[0], None  # No label, operation name, no operand
         else:
-            raise SyntaxError('Fixed format only')
+            raise SyntaxError(f'Fixed format only {line}')
 
 
 class Assembler:
@@ -162,7 +166,10 @@ class Assembler:
                         # Add the Literal to the symbol table
                         self.symbol_table[literal_value] = hex(
                             int(self.locctr))
-                        literal_line = Line(f'*   {literal_value}  .NOOPERAND')
+                        # literal_line = Line(f'* {literal_value}  .NOOPERAND')
+                        literal_line = Line('')
+                        literal_line.label = '*'
+                        literal_line.operation_name = literal_value
                         literal_line.line_location = self.locctr
                         self.locctr += literal_size
                         # Add the literal to the intermediate file
@@ -209,7 +216,9 @@ class Assembler:
                     continue
                 self.symbol_table[literal_value] = hex(
                     int(self.locctr))
-                literal_line = Line(f'*   {literal_value}  .NOOPERAND')
+                literal_line = Line('')
+                literal_line.label = '*'
+                literal_line.operation_name = literal_value
                 literal_line.line_location = self.locctr
                 self.locctr += literal_size
                 # Add the literal to the intermediate file
@@ -223,30 +232,37 @@ class Assembler:
             object_code = ''
             line_location, label, operation_name, operand = line_object.line_location, line_object.label, line_object.operation_name, line_object.operand
 
-            if operation_name in opcode_table:
-                object_code += "{0:08b}".format(int(opcode_table[operation_name].opcode, 16))
-                if operation_name == 'RSUB':
-                    object_code += '0' * 16
-
-                elif ',' in operand:
-                    object_code += '1'
-                    base_operand, _ = operand.split(',')
-                    object_code += "{0:015b}".format(int(self.symbol_table[base_operand], 16))
-                else:
-                    object_code += '0'
-                    object_code += "{0:015b}".format(int(self.symbol_table[operand], 16))
+            if label == '*':  # Literal
+                if operation_name[1] == 'X':
+                    object_code = operand.replace("X", '').replace("'", '')
+                elif operation_name[1] == 'C':
+                    operation_name = operation_name.replace("C", '').replace("'", '')
+                    object_code = ''.join([hex(ord(ch))[2:].upper() for ch in operation_name])
             else:
-                if operation_name == 'RESW' or operation_name == 'RESB':
-                    object_code = ''
+                if operation_name in opcode_table:
+                    object_code += "{0:08b}".format(int(opcode_table[operation_name].opcode, 16))
+                    if operation_name == 'RSUB':
+                        object_code += '0' * 16
+
+                    elif ',' in operand:
+                        object_code += '1'
+                        base_operand, _ = operand.split(',')
+                        object_code += "{0:015b}".format(int(self.symbol_table[base_operand], 16))
+                    else:
+                        object_code += '0'
+                        object_code += "{0:015b}".format(int(self.symbol_table[operand], 16))
                 else:
-                    if operation_name == 'WORD':
-                        object_code += "{0:024b}".format(int(operand))
-                    elif operation_name == 'BYTE':
-                        if operand.startswith('X'):
-                            object_code = operand.replace("X", '').replace("'", '')
-                        elif operand.startswith('C'):
-                            operand = operand.replace("C", '').replace("'", '')
-                            object_code = ''.join([hex(ord(ch))[2:] for ch in operand])
+                    if operation_name == 'RESW' or operation_name == 'RESB':
+                        object_code = ''
+                    else:
+                        if operation_name == 'WORD':
+                            object_code += "{0:024b}".format(int(operand))
+                        elif operation_name == 'BYTE':
+                            if operand.startswith('X'):
+                                object_code = operand.replace("X", '').replace("'", '')
+                            elif operand.startswith('C'):
+                                operand = operand.replace("C", '').replace("'", '')
+                                object_code = ''.join([hex(ord(ch))[2:].upper() for ch in operand])
             self.objects_list.append(object_code)
         self.hexify_objects_code()
         
