@@ -6,8 +6,7 @@ from utils import Instruction, opcode_table
 
 class Line:
     """
-    Break SIC instruction into label, opcode, operands.
-
+    Break SIC instructions into label, opcode, operands.
 
     Parameters
     ----------
@@ -96,12 +95,54 @@ class Assembler:
         self.text_records = []
 
     def is_comment(self, line):
+        """
+        Check if a given line is a comment
+
+        Parameters
+        ----------
+
+        line : str
+         line from a script
+
+        Returns
+        -------
+
+        bool : 
+            Is the given line is a comment
+        """
         return line.split()[0].startswith('.')
 
     def is_empty(self, line):
+        """
+        Check if a given line is an empty line
+
+        Parameters
+        ----------
+
+        line : str
+         line from a script
+
+        Returns
+        -------
+
+        bool : 
+            Is the given line is an empty line
+        """
         return len(line.split()) == 0
 
     def hexify_objects_code(self):
+        """
+        Convert objects code to 6 charachters hexadecimal fixed format.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        list : 
+            A hexified format of the objects code.
+        """
         self.objects_list = ['\t' if obj == '' else "{:08x}".format(
             int(obj, 2))[2:].upper() if len(obj) == 24 else obj for obj in self.objects_list]
 
@@ -111,9 +152,11 @@ class Assembler:
 
         Parameters
         ----------
+        None
 
         Returns
         ----------
+        None
         """
         literals_list = []
         # Find the starting address and the name of the program.
@@ -229,6 +272,17 @@ class Assembler:
         self.prog_length = int(hex(self.locctr - self.start_address), 0)
 
     def generate_objects_list(self):
+        """
+        Generates the object code for each instruction inside the generated intermediate file.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        ----------
+        None
+        """
         for line_object in self.intermediate:
             object_code = ''
             line_location, label, operation_name, operand = line_object.line_location, line_object.label, line_object.operation_name, line_object.operand
@@ -281,6 +335,17 @@ class Assembler:
         self.hexify_objects_code()
 
     def generate_text_records(self):
+        """
+        Generates the text records from the listing file.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        ----------
+        None
+        """
         self.text_records.append(
             f'H{self.prog_name}    {"{0:06x}".format(int(hex(self.start_address), 16)).upper()}{"{0:06x}".format(int(hex(self.prog_length), 16)).upper()}')
         j = 0
@@ -297,17 +362,59 @@ class Assembler:
                 j += 1
             length = ceil(len(record) / 2)
             length = "{0:02x}".format(length).upper()
-            print(length)
-            record = 'T' + "{0:06x}".format(int(hex(start_address), 16)).upper() + length + record
+
+            record = 'T' + \
+                "{0:06x}".format(int(hex(start_address), 16)
+                                 ).upper() + length + record
             self.text_records.append(record)
-        self.text_records.append(f'E{"{0:06x}".format(int(hex(self.start_address), 16)).upper()}')
+        self.text_records.append(
+            f'E{"{0:06x}".format(int(hex(self.start_address), 16)).upper()}')
 
     def pass2(self):
+        """
+        Operate pass2 on the intermediate file.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        ----------
+        None
+        """
         self.generate_objects_list()
         self.generate_text_records()
 
 
 def assembel(source_path, intermediate_output_path, listing_output_path, object_file_path):
+    """
+        Assembels the source script.
+
+        Parameters
+        ----------
+        source_path : str
+            Path to the source SIC script.
+
+        intermediate_output_path : str
+            Path to the intermediate script that will be filled with the generated intermediate instructions <Address   Instruction>.
+        listing_output_path : str
+            Path to the listing script that will be filled with intermediate instructions and their object code <Address    Instruction Object code>.
+
+        object_file_path : str
+            Path to the object file where the text records will be stored.
+
+        Returns
+        ----------
+
+        program name : str
+            The name of hte program if exists.
+
+        program length : int
+            The length of the progrma in bytes.
+
+        symbol_table : dict
+            The symbole table dictionary
+        """
     if source_path == '' or intermediate_output_path == '':
         source_path = input('Enter the input source path: ')
         intermediate_output_path = input('Enter the output path: ')
@@ -340,4 +447,5 @@ def assembel(source_path, intermediate_output_path, listing_output_path, object_
 if __name__ == "__main__":
     if len(sys.argv) == 5:
         _, input_script_path, intermediate_path, listing_path, object_path = sys.argv
-        assembel(input_script_path, intermediate_path, listing_path, object_path)
+        assembel(input_script_path, intermediate_path,
+                 listing_path, object_path)
