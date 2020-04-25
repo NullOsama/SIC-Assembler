@@ -7,8 +7,8 @@ SIC-Assembler Project that assembles a SIC architechure scripts and generates th
 python assembler.py <input script path> <intermediate file path> <listing file path> <object file path>
 ```
 Example: 
-```python
-python .\assembler.py .\sample_tests\source.asm .\intermediate.mdt .\listing.lst .\object_file.obj
+```bash
+python .\assembler.py  .\sample_tests\source.asm .\intermediate.mdt .\listing.lst .\object_file.obj
 ```
 
 
