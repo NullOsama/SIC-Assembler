@@ -143,7 +143,8 @@ class Assembler:
         list : 
             A hexified format of the objects code.
         """
-        self.objects_list = ['\t' if obj == '' else "{:08x}".format(int(obj, 2))[2:].upper() if len(obj) == 24 else obj.replace("3D", '') for obj in self.objects_list]
+        self.objects_list = ['\t' if obj == '' else "{:08x}".format(int(obj, 2))[2:].upper(
+        ) if len(obj) == 24 else obj.replace("3D", '') for obj in self.objects_list]
 
     def pass_one(self):
         """
@@ -285,11 +286,13 @@ class Assembler:
         for line_object in self.intermediate:
             object_code = ''
             line_location, label, operation_name, operand = line_object.line_location, line_object.label, line_object.operation_name, line_object.operand
-            
+
             if label == '*':  # Literal
                 if operation_name[1] == 'X':
-                    operation_name = operation_name.replace("X", '').replace("'", '').replace('=', '')
-                    object_code = ''.join([hex(int(ch))[2:].upper() for ch in operation_name])
+                    operation_name = operation_name.replace(
+                        "X", '').replace("'", '').replace('=', '')
+                    object_code = ''.join(
+                        [hex(int(ch))[2:].upper() for ch in operation_name])
                 elif operation_name[1] == 'C':
                     operation_name = operation_name.replace(
                         "C", '').replace("'", '')
