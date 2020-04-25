@@ -13,7 +13,7 @@ ENDFIL   LDA    EOF
          JSUB   WRREC              .COMMENT
          LDL    RETADR             
          RSUB                      
-EOF      BYTE   C'EOF'             
+EOF      BYTE   C'EOF'
 THREE    WORD   3                  
 ZERO     WORD   0                  
 RETADR   RESW   1                  .COMMENTCOMMENTCOMMENT
@@ -56,5 +56,5 @@ OUTPUT   BYTE   X'50'
          LDA    =X'05'             
          RSUB                      
          LTORG                     
-         LDA    =C'OFE'            
-         END    FIRST              
+         LDA    =C'OFE'                                                                    
+         END    FIRST                                                 

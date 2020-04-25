@@ -143,8 +143,7 @@ class Assembler:
         list : 
             A hexified format of the objects code.
         """
-        self.objects_list = ['\t' if obj == '' else "{:08x}".format(
-            int(obj, 2))[2:].upper() if len(obj) == 24 else obj for obj in self.objects_list]
+        self.objects_list = ['\t' if obj == '' else "{:08x}".format(int(obj, 2))[2:].upper() if len(obj) == 24 else obj.replace("3D", '') for obj in self.objects_list]
 
     def pass_one(self):
         """
@@ -286,10 +285,11 @@ class Assembler:
         for line_object in self.intermediate:
             object_code = ''
             line_location, label, operation_name, operand = line_object.line_location, line_object.label, line_object.operation_name, line_object.operand
-
+            
             if label == '*':  # Literal
                 if operation_name[1] == 'X':
-                    object_code = operand.replace("X", '').replace("'", '')
+                    operation_name = operation_name.replace("X", '').replace("'", '').replace('=', '')
+                    object_code = ''.join([hex(int(ch))[2:].upper() for ch in operation_name])
                 elif operation_name[1] == 'C':
                     operation_name = operation_name.replace(
                         "C", '').replace("'", '')
@@ -317,7 +317,9 @@ class Assembler:
                                 f'Operand not fount at {line_location}')
                 else:
                     if operation_name == 'RESW' or operation_name == 'RESB':
-                        object_code = ''
+                        pass
+                    elif operation_name == 'LTORG' or operation_name == 'END':
+                        object_code = '!'
                     else:
                         if operation_name == 'WORD':
                             object_code += "{0:024b}".format(int(operand))
@@ -358,6 +360,9 @@ class Assembler:
             start_address = self.object_addresses[j]
             length = 0
             while j < len(self.objects_list) and self.objects_list[j] != '\t' and len(record + self.objects_list[j]) <= 60:
+                if self.objects_list[j] == '!':
+                    j += 1
+                    continue
                 record += self.objects_list[j]
                 j += 1
             length = ceil(len(record) / 2)
@@ -432,7 +437,7 @@ def assembel(source_path, intermediate_output_path, listing_output_path, object_
                                                           line_object.operation_name, line_object.operand if line_object.operand is not None else '']) for line_object in assembler.intermediate])
 
         listing_file_content = '\n'.join(['\t'.join([hex(line_object.line_location).upper().replace('X', 'x'), line_object.label if line_object.label is not None else '',
-                                                     line_object.operation_name, line_object.operand if line_object.operand is not None else '']) + '\t' + object_code for line_object, object_code in zip(assembler.intermediate, assembler.objects_list)])
+                                                     line_object.operation_name, line_object.operand if line_object.operand is not None else '']) + '\t' + object_code.replace("!", '') for line_object, object_code in zip(assembler.intermediate, assembler.objects_list)])
 
         objects_file_content = '\n'.join(assembler.text_records)
 
