@@ -1,8 +1,6 @@
 # SIC-Assembler
 
 SIC-Assembler Project that assembles a SIC architechure scripts and generates the requared files and records.
-Currently pass1 is implemented and working on pass two till april 15th.
-
 ## Usage
 
 ```bash
