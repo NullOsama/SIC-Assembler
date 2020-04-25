@@ -1,6 +1,4 @@
-import os
 import sys
-import getopt
 from math import ceil
 from collections import defaultdict
 from utils import Instruction, opcode_table
@@ -20,7 +18,8 @@ class Line:
     def __init__(self, line):
         super().__init__()
         if len(line) != 0:
-            self.label, self.operation_name, self.operand = self.parse_line(line)
+            self.label, self.operation_name, self.operand = self.parse_line(
+                line)
             self.line_location = ''
         else:
             self.label, self.operation_name, self.operand = '', '', ''
@@ -93,6 +92,8 @@ class Assembler:
         self.prog_length = 0
         self.intermediate = []
         self.objects_list = []
+        self.object_addresses = []
+        self.text_records = []
 
     def is_comment(self, line):
         return line.split()[0].startswith('.')
@@ -101,8 +102,8 @@ class Assembler:
         return len(line.split()) == 0
 
     def hexify_objects_code(self):
-        self.objects_list = ['\t' if obj == '' else "{:08x}".format(int(obj, 2))[2:].upper() if len(obj) == 24 else obj for obj in self.objects_list]
-        
+        self.objects_list = ['\t' if obj == '' else "{:08x}".format(
+            int(obj, 2))[2:].upper() if len(obj) == 24 else obj for obj in self.objects_list]
 
     def pass_one(self):
         """
@@ -227,7 +228,7 @@ class Assembler:
 
         self.prog_length = int(hex(self.locctr - self.start_address), 0)
 
-    def pass2(self):
+    def generate_objects_list(self):
         for line_object in self.intermediate:
             object_code = ''
             line_location, label, operation_name, operand = line_object.line_location, line_object.label, line_object.operation_name, line_object.operand
@@ -236,21 +237,30 @@ class Assembler:
                 if operation_name[1] == 'X':
                     object_code = operand.replace("X", '').replace("'", '')
                 elif operation_name[1] == 'C':
-                    operation_name = operation_name.replace("C", '').replace("'", '')
-                    object_code = ''.join([hex(ord(ch))[2:].upper() for ch in operation_name])
+                    operation_name = operation_name.replace(
+                        "C", '').replace("'", '')
+                    object_code = ''.join(
+                        [hex(ord(ch))[2:].upper() for ch in operation_name])
             else:
                 if operation_name in opcode_table:
-                    object_code += "{0:08b}".format(int(opcode_table[operation_name].opcode, 16))
+                    object_code += "{0:08b}".format(
+                        int(opcode_table[operation_name].opcode, 16))
                     if operation_name == 'RSUB':
                         object_code += '0' * 16
 
                     elif ',' in operand:
                         object_code += '1'
                         base_operand, _ = operand.split(',')
-                        object_code += "{0:015b}".format(int(self.symbol_table[base_operand], 16))
+                        object_code += "{0:015b}".format(
+                            int(self.symbol_table[base_operand], 16))
                     else:
-                        object_code += '0'
-                        object_code += "{0:015b}".format(int(self.symbol_table[operand], 16))
+                        if operand in self.symbol_table:
+                            object_code += '0'
+                            object_code += "{0:015b}".format(
+                                int(self.symbol_table[operand], 16))
+                        else:
+                            raise SyntaxError(
+                                f'Operand not fount at {line_location}')
                 else:
                     if operation_name == 'RESW' or operation_name == 'RESB':
                         object_code = ''
@@ -259,24 +269,49 @@ class Assembler:
                             object_code += "{0:024b}".format(int(operand))
                         elif operation_name == 'BYTE':
                             if operand.startswith('X'):
-                                object_code = operand.replace("X", '').replace("'", '')
+                                object_code = operand.replace(
+                                    "X", '').replace("'", '')
                             elif operand.startswith('C'):
-                                operand = operand.replace("C", '').replace("'", '')
-                                object_code = ''.join([hex(ord(ch))[2:].upper() for ch in operand])
+                                operand = operand.replace(
+                                    "C", '').replace("'", '')
+                                object_code = ''.join(
+                                    [hex(ord(ch))[2:].upper() for ch in operand])
             self.objects_list.append(object_code)
+            self.object_addresses.append(line_location)
         self.hexify_objects_code()
-        
+
+    def generate_text_records(self):
+        self.text_records.append(
+            f'H{self.prog_name}    {"{0:06x}".format(int(hex(self.start_address), 16)).upper()}{"{0:06x}".format(int(hex(self.prog_length), 16)).upper()}')
+        j = 0
+        while j < len(self.objects_list):
+            if self.objects_list[j] == '\t':
+                j += 1
+                continue
+
+            record = ''
+            start_address = self.object_addresses[j]
+            length = 0
+            while j < len(self.objects_list) and self.objects_list[j] != '\t' and len(record + self.objects_list[j]) <= 60:
+                record += self.objects_list[j]
+                j += 1
+            length = ceil(len(record) / 2)
+            length = "{0:02x}".format(length).upper()
+            print(length)
+            record = 'T' + "{0:06x}".format(int(hex(start_address), 16)).upper() + length + record
+            self.text_records.append(record)
+        self.text_records.append(f'E{"{0:06x}".format(int(hex(self.start_address), 16)).upper()}')
+
+    def pass2(self):
+        self.generate_objects_list()
+        self.generate_text_records()
 
 
-                    
-                
-
-
-def assembel(source_file_path, intermediate_file_output_path, listing_file_output_path=r'C:\Users\aaxxo\Desktop\SICass\listing.lst'):
-    if source_file_path == '' or intermediate_file_output_path == '':
-        source_file_path = input('Enter the input source path: ')
-        intermediate_file_output_path = input('Enter the output path: ')
-    with open(source_file_path, 'r') as source_file, open(intermediate_file_output_path, 'w') as intermediate_file, open(listing_file_output_path, 'w') as listing_file:
+def assembel(source_path, intermediate_output_path, listing_output_path, object_file_path):
+    if source_path == '' or intermediate_output_path == '':
+        source_path = input('Enter the input source path: ')
+        intermediate_output_path = input('Enter the output path: ')
+    with open(source_path, 'r') as source_file, open(intermediate_output_path, 'w') as intermediate_file, open(listing_output_path, 'w') as listing_file, open(object_file_path, 'w') as object_file:
         assembler = Assembler(source_file)
         assembler.pass_one()
         assembler.pass2()
@@ -290,37 +325,19 @@ def assembel(source_file_path, intermediate_file_output_path, listing_file_outpu
                                                           line_object.operation_name, line_object.operand if line_object.operand is not None else '']) for line_object in assembler.intermediate])
 
         listing_file_content = '\n'.join(['\t'.join([hex(line_object.line_location).upper().replace('X', 'x'), line_object.label if line_object.label is not None else '',
-                                                          line_object.operation_name, line_object.operand if line_object.operand is not None else '']) + '\t' + object_code for line_object, object_code in zip(assembler.intermediate, assembler.objects_list)])
-                                                          
+                                                     line_object.operation_name, line_object.operand if line_object.operand is not None else '']) + '\t' + object_code for line_object, object_code in zip(assembler.intermediate, assembler.objects_list)])
+
+        objects_file_content = '\n'.join(assembler.text_records)
+
         intermediate_file.write(intermediate_file_content)
         listing_file.write(listing_file_content)
-        
 
-        # [print(x, y) for x, y in zip(assembler.intermediate, assembler.objects_list)]
+        object_file.write(objects_file_content)
+
         return assembler.prog_name, assembler.prog_length,  assembler.symbol_table
 
 
-def main(argv):
-    inputfile = ''
-    outputfile = ''
-    try:
-        opts, _ = getopt.getopt(argv, "hi:o:", ["ifile=", "ofile="])
-    except getopt.GetoptError:
-        print('test.py -i <inputfile> -o <outputfile>')
-        sys.exit(2)
-    for opt, arg in opts:
-        if opt == '-h':
-            print('test.py -i <inputfile> -o <outputfile>')
-            sys.exit()
-        elif opt in ("-i", "--ifile"):
-            inputfile = os.path.abspath(arg)
-        elif opt in ("-o", "--ofile"):
-            outputfile = os.path.abspath(arg)
-    print('Input file is ', inputfile)
-    print('Output file is ', outputfile)
-
-    assembel(inputfile, outputfile)
-
-
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    if len(sys.argv) == 5:
+        _, input_script_path, intermediate_path, listing_path, object_path = sys.argv
+        assembel(input_script_path, intermediate_path, listing_path, object_path)
