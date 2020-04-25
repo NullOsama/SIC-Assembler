@@ -6,7 +6,7 @@ Currently pass1 is implemented and working on pass two till april 15th.
 ## Usage
 
 ```bash
-python Pass1.py <input script path> <intermediate file path> <listing file path> <object file path>
+python assembler.py <input script path> <intermediate file path> <listing file path> <object file path>
 ```
 
 It takes the script in the inputfile source and generates the symbol table, program name, program length, ... etc.
